@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -11,35 +11,20 @@ import {
   useTransform,
 } from "motion/react";
 
+// expression stills, bottom-flush and eye-aligned. Life comes from smooth
+// interpolated transforms (breathe/sway/bounce); frames only crossfade
+// between near-identical poses so swaps read as blinks, not jumps.
 const FRAMES = [
   "neutral-1",
   "neutral-2",
   "neutral-3",
   "smile-soft",
   "happy-closed",
-  "wave-neutral",
-  "wave-eyes",
   "wave-happy",
-  "smile-wave",
   "smile-wave-2",
 ] as const;
 
 type Frame = (typeof FRAMES)[number];
-
-// frame sequences — arm/eye positions differ per frame, so stepping
-// through them plays like a hand-drawn animation
-const WAVE: Frame[] = [
-  "wave-neutral",
-  "wave-eyes",
-  "wave-happy",
-  "smile-wave",
-  "smile-wave-2",
-  "smile-wave",
-  "wave-happy",
-];
-const BLINK: Frame[] = ["smile-soft", "neutral-1"];
-const GLANCE: Frame[] = ["neutral-2", "neutral-3", "neutral-2", "neutral-1"];
-const DELIGHT: Frame[] = ["happy-closed", "smile-wave-2", "happy-closed"];
 
 const THOUGHTS = [
   "human, or an agent?",
@@ -49,50 +34,22 @@ const THOUGHTS = [
 
 export default function MarvCompanion() {
   const reduce = useReducedMotion();
-  const [frame, setFrame] = useState<Frame>("wave-neutral");
+  const [frame, setFrame] = useState<Frame>("wave-happy");
   const [thought, setThought] = useState<string | null>(null);
-  const seqTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const idleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [bounceKey, setBounceKey] = useState(0);
   const hovering = useRef(false);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const waveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const stopSeq = useCallback(() => {
-    if (seqTimer.current) clearInterval(seqTimer.current);
-    seqTimer.current = null;
-  }, []);
-
-  const play = useCallback(
-    (frames: Frame[], ms: number, loop = false, onDone?: () => void) => {
-      stopSeq();
-      let i = 0;
-      setFrame(frames[0]);
-      seqTimer.current = setInterval(() => {
-        i += 1;
-        if (i >= frames.length) {
-          if (loop) {
-            i = 0;
-          } else {
-            stopSeq();
-            setFrame("neutral-1");
-            onDone?.();
-            return;
-          }
-        }
-        setFrame(frames[i]);
-      }, ms);
-    },
-    [stopSeq]
-  );
-
-  // cursor tilt
+  // cursor sway — springs interpolate at 60fps, origin pinned to his base
   const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const rotateY = useSpring(useTransform(mx, [-1, 1], [-10, 10]), {
-    stiffness: 90,
-    damping: 14,
+  const rotateY = useSpring(useTransform(mx, [-1, 1], [-7, 7]), {
+    stiffness: 55,
+    damping: 13,
   });
-  const rotateX = useSpring(useTransform(my, [-1, 1], [8, -8]), {
-    stiffness: 90,
-    damping: 14,
+  const x = useSpring(useTransform(mx, [-1, 1], [-10, 10]), {
+    stiffness: 55,
+    damping: 15,
   });
 
   useEffect(() => {
@@ -101,59 +58,75 @@ export default function MarvCompanion() {
       return;
     }
 
-    // entrance: one slow wave, then hand over to the idle loop
-    play(WAVE, 340);
+    // entrance: hold the wave, then settle
+    const settle = setTimeout(() => setFrame("neutral-1"), 1800);
 
-    // idle life: every ~3.4s a gentle micro-animation (blink / glance / smile)
-    idleTimer.current = setInterval(() => {
-      if (hovering.current || seqTimer.current) return;
+    // idle: a blink or a sideways glance every few seconds, crossfaded
+    const idle = setInterval(() => {
+      if (hovering.current) return;
       const roll = Math.random();
-      if (roll < 0.55) play(BLINK, 240);
-      else if (roll < 0.85) play(GLANCE, 320);
-      else play(["smile-soft"], 1100);
-    }, 3400);
+      const next: Frame =
+        roll < 0.6 ? "smile-soft" : roll < 0.8 ? "neutral-2" : "neutral-3";
+      setFrame(next);
+      settleTimer.current = setTimeout(
+        () => {
+          if (!hovering.current) setFrame("neutral-1");
+        },
+        next === "smile-soft" ? 320 : 1000
+      );
+    }, 3800);
 
-    // occasional thought bubble
     let i = 0;
     const think = setInterval(() => {
       setThought(THOUGHTS[i % THOUGHTS.length]);
       i += 1;
       setTimeout(() => setThought(null), 3600);
-    }, 9000);
+    }, 9500);
 
     const onMove = (e: PointerEvent) => {
       mx.set((e.clientX / window.innerWidth) * 2 - 1);
-      my.set((e.clientY / window.innerHeight) * 2 - 1);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
 
     return () => {
-      stopSeq();
-      if (idleTimer.current) clearInterval(idleTimer.current);
+      clearTimeout(settle);
+      clearInterval(idle);
       clearInterval(think);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      if (waveTimer.current) clearInterval(waveTimer.current);
       window.removeEventListener("pointermove", onMove);
     };
-  }, [reduce, play, stopSeq, mx, my]);
+  }, [reduce, mx]);
 
   return (
     <motion.div
-      style={reduce ? undefined : { rotateX, rotateY, transformPerspective: 700 }}
-      className="relative select-none cursor-pointer"
+      style={reduce ? undefined : { rotateY, x, transformPerspective: 800 }}
+      className="relative select-none cursor-pointer origin-bottom"
       onPointerEnter={() => {
         if (reduce) return;
         hovering.current = true;
-        play(WAVE, 320, true);
+        // gentle two-pose wave, slow crossfades — reads as waving, not cuts
+        setFrame("wave-happy");
+        waveTimer.current = setInterval(() => {
+          setFrame((f) => (f === "wave-happy" ? "smile-wave-2" : "wave-happy"));
+        }, 650);
       }}
       onPointerLeave={() => {
         if (reduce) return;
         hovering.current = false;
-        play(BLINK, 240);
+        if (waveTimer.current) clearInterval(waveTimer.current);
+        waveTimer.current = null;
+        setFrame("neutral-1");
       }}
       onClick={() => {
         if (reduce) return;
-        play(DELIGHT, 300);
+        setFrame("happy-closed");
+        setBounceKey((k) => k + 1);
         setThought(THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]);
         setTimeout(() => setThought(null), 3000);
+        settleTimer.current = setTimeout(() => {
+          if (!hovering.current) setFrame("neutral-1");
+        }, 1400);
       }}
     >
       <AnimatePresence>
@@ -162,28 +135,44 @@ export default function MarvCompanion() {
             initial={{ opacity: 0, y: 8, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.95 }}
-            className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl rounded-bl-sm border border-hairline bg-surface-2 px-4 py-2 font-mono text-xs text-lime z-10"
+            className="absolute -top-10 left-[58%] whitespace-nowrap rounded-2xl rounded-bl-sm border border-hairline bg-surface-2 px-4 py-2 font-mono text-xs text-lime z-10"
           >
             {thought}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className={reduce ? "" : "animate-[marv-bob_5s_ease-in-out_infinite]"}>
-        {FRAMES.map((f, idx) => (
-          <Image
-            key={f}
-            src={`/marv/expressions/${f}.png`}
-            alt={f === frame ? "Marv, the UWA AI Club robot-cat mascot" : ""}
-            width={420}
-            height={420}
-            priority={idx < 2}
-            className={`drop-shadow-[0_0_36px_rgba(157,255,63,0.35)] transition-opacity duration-300 ease-in-out ${
-              f === frame ? "opacity-100" : "opacity-0"
-            } ${idx === 0 ? "" : "absolute inset-0"}`}
-          />
-        ))}
-      </div>
+      {/* squash-and-stretch bounce on click; breathing loop underneath */}
+      <motion.div
+        key={bounceKey}
+        animate={
+          reduce || bounceKey === 0
+            ? undefined
+            : { scaleY: [1, 0.94, 1.04, 1], scaleX: [1, 1.04, 0.98, 1] }
+        }
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        className="origin-bottom"
+      >
+        <div
+          className={`origin-bottom ${
+            reduce ? "" : "animate-[marv-breathe_4.5s_ease-in-out_infinite]"
+          }`}
+        >
+          {FRAMES.map((f, idx) => (
+            <Image
+              key={f}
+              src={`/marv/expressions/${f}.png`}
+              alt={f === frame ? "Marv, the UWA AI Club robot-cat mascot" : ""}
+              width={482}
+              height={400}
+              priority={idx < 2}
+              className={`w-full h-auto drop-shadow-[0_0_44px_rgba(157,255,63,0.3)] transition-opacity duration-300 ease-in-out ${
+                f === frame ? "opacity-100" : "opacity-0"
+              } ${idx === 0 ? "" : "absolute inset-0"}`}
+            />
+          ))}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }

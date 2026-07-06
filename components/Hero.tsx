@@ -22,7 +22,7 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="noise relative overflow-hidden min-h-svh flex items-center pt-16"
+      className="noise relative overflow-hidden"
     >
       <NeuralCanvas />
       <div
@@ -30,26 +30,22 @@ export default function Hero() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(157,255,63,0.07),transparent_55%)]"
       />
 
-      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 py-24 grid items-center gap-16 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 min-h-svh grid gap-x-10 lg:grid-cols-[0.9fr_1.1fr]">
+        {/* Marv — free-standing, rising from the page's bottom edge like the wireframe */}
         <motion.div
-          initial={reduce ? undefined : { opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="relative mx-auto w-full max-w-lg max-lg:order-last"
+          initial={reduce ? undefined : { opacity: 0, y: 90 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
+          className="relative self-end justify-self-center lg:justify-self-start w-[min(78vw,400px)] lg:w-[min(38vw,520px)] max-lg:order-last"
         >
-          <div className="relative rounded-3xl border border-hairline bg-surface/60 backdrop-blur-sm p-8 sm:p-12 flex justify-center">
-            <div
-              aria-hidden
-              className="absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(157,255,63,0.12),transparent_65%)]"
-            />
-            <MarvCompanion />
-            <p className="absolute bottom-4 right-6 font-mono text-xs text-moss/70">
-              marv.sys — online
-            </p>
-          </div>
+          <div
+            aria-hidden
+            className="absolute inset-x-[-15%] bottom-[-12%] h-[80%] bg-[radial-gradient(ellipse_at_50%_100%,rgba(157,255,63,0.2),transparent_70%)] blur-2xl"
+          />
+          <MarvCompanion />
         </motion.div>
 
-        <div>
+        <div className="self-center pt-40 pb-16 lg:py-28">
           <motion.p {...rise(0.05)} className="font-mono text-sm text-moss">
             {"// uwa ai club — est. 2025 · perth, wa"}
           </motion.p>
@@ -105,7 +101,7 @@ export default function Hero() {
 
       <div
         aria-hidden
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-xs text-moss/60"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono text-xs text-moss/60 max-lg:hidden"
       >
         scroll ↓
       </div>
