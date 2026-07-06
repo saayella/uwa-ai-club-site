@@ -41,6 +41,7 @@ export default function Vision() {
     target: trackRef,
     offset: ["start start", "end end"],
   });
+  const winthropOpacity = useTransform(scrollYProgress, [0, 0.35], [0, 0.22]);
 
   const words = VISION.split(" ");
 
@@ -51,9 +52,26 @@ export default function Vision() {
         <div
           className={`${
             reduce ? "" : "sticky top-0 h-svh"
-          } flex items-center overflow-hidden`}
+          } relative flex items-center overflow-hidden`}
         >
-          <div className="mx-auto max-w-5xl px-5 sm:px-8 py-24 w-full">
+          {/* Winthrop Hall line-art — "a university ecosystem" */}
+          <motion.div
+            aria-hidden
+            style={reduce ? undefined : { opacity: winthropOpacity }}
+            className={`absolute inset-y-0 right-0 flex items-center justify-end pointer-events-none select-none ${
+              reduce ? "opacity-20" : ""
+            }`}
+          >
+            <Image
+              src="/uwa-winthrop.png"
+              alt=""
+              width={806}
+              height={691}
+              className="h-[70svh] w-auto max-w-none mix-blend-screen opacity-90 translate-x-[12%]"
+            />
+          </motion.div>
+
+          <div className="relative mx-auto max-w-5xl px-5 sm:px-8 py-24 w-full">
             <div className="flex items-center gap-4">
               <p className="font-mono text-sm text-moss">{"// vision"}</p>
               <span className="h-px flex-1 bg-cream/10" aria-hidden />

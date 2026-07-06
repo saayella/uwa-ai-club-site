@@ -101,17 +101,17 @@ export default function MarvCompanion() {
       return;
     }
 
-    // entrance: two full wave cycles, then hand over to the idle loop
-    play([...WAVE, ...WAVE], 220);
+    // entrance: one slow wave, then hand over to the idle loop
+    play(WAVE, 340);
 
-    // idle life: every ~2.6s a micro-animation (blink / glance / wave snippet)
+    // idle life: every ~3.4s a gentle micro-animation (blink / glance / smile)
     idleTimer.current = setInterval(() => {
       if (hovering.current || seqTimer.current) return;
       const roll = Math.random();
-      if (roll < 0.5) play(BLINK, 170);
-      else if (roll < 0.8) play(GLANCE, 240);
-      else play(WAVE.slice(0, 5), 230);
-    }, 2600);
+      if (roll < 0.55) play(BLINK, 240);
+      else if (roll < 0.85) play(GLANCE, 320);
+      else play(["smile-soft"], 1100);
+    }, 3400);
 
     // occasional thought bubble
     let i = 0;
@@ -142,16 +142,16 @@ export default function MarvCompanion() {
       onPointerEnter={() => {
         if (reduce) return;
         hovering.current = true;
-        play(WAVE, 200, true);
+        play(WAVE, 320, true);
       }}
       onPointerLeave={() => {
         if (reduce) return;
         hovering.current = false;
-        play(BLINK, 170);
+        play(BLINK, 240);
       }}
       onClick={() => {
         if (reduce) return;
-        play(DELIGHT, 200);
+        play(DELIGHT, 300);
         setThought(THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]);
         setTimeout(() => setThought(null), 3000);
       }}
@@ -175,10 +175,10 @@ export default function MarvCompanion() {
             key={f}
             src={`/marv/expressions/${f}.png`}
             alt={f === frame ? "Marv, the UWA AI Club robot-cat mascot" : ""}
-            width={340}
-            height={340}
+            width={420}
+            height={420}
             priority={idx < 2}
-            className={`drop-shadow-[0_0_36px_rgba(157,255,63,0.35)] ${
+            className={`drop-shadow-[0_0_36px_rgba(157,255,63,0.35)] transition-opacity duration-300 ease-in-out ${
               f === frame ? "opacity-100" : "opacity-0"
             } ${idx === 0 ? "" : "absolute inset-0"}`}
           />

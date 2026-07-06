@@ -30,14 +30,14 @@ export default function Hero() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(157,255,63,0.07),transparent_55%)]"
       />
 
-      <div className="relative mx-auto max-w-6xl px-5 sm:px-8 py-20 grid items-center gap-14 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 py-24 grid items-center gap-16 lg:grid-cols-[0.9fr_1.1fr]">
         <motion.div
           initial={reduce ? undefined : { opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="relative mx-auto w-full max-w-md max-lg:order-last"
+          className="relative mx-auto w-full max-w-lg max-lg:order-last"
         >
-          <div className="relative rounded-3xl border border-hairline bg-surface/60 backdrop-blur-sm p-10 flex justify-center">
+          <div className="relative rounded-3xl border border-hairline bg-surface/60 backdrop-blur-sm p-8 sm:p-12 flex justify-center">
             <div
               aria-hidden
               className="absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(157,255,63,0.12),transparent_65%)]"
@@ -56,7 +56,7 @@ export default function Hero() {
 
           <motion.h1
             {...rise(0.15)}
-            className="mt-6 font-display font-bold leading-[1.08] text-[clamp(2.2rem,4.6vw,4.1rem)]"
+            className="mt-6 font-display font-bold leading-[1.06] text-[clamp(2.5rem,5.3vw,5.1rem)]"
           >
             Welcome to
             <br />
@@ -65,7 +65,7 @@ export default function Hero() {
 
           <motion.p
             {...rise(0.3)}
-            className="mt-7 max-w-xl text-lg text-cream/80 leading-relaxed"
+            className="mt-8 max-w-2xl text-lg sm:text-xl text-cream/80 leading-relaxed"
           >
             The newest club at UWA, here to{" "}
             <span className="text-lime">educate</span>. We build an inclusive,
@@ -90,12 +90,12 @@ export default function Hero() {
 
           <motion.dl
             {...rise(0.6)}
-            className="mt-12 flex flex-wrap gap-x-10 gap-y-4 font-mono text-sm"
+            className="mt-14 flex flex-wrap gap-x-12 gap-y-4 font-mono text-base"
           >
             {stats.map(([n, label]) => (
               <div key={label} className="flex items-baseline gap-2">
                 <dt className="sr-only">{label}</dt>
-                <dd className="text-lime text-lg">{n}</dd>
+                <dd className="text-lime text-2xl">{n}</dd>
                 <dd className="text-moss">{label}</dd>
               </div>
             ))}
