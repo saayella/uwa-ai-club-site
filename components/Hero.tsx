@@ -30,13 +30,13 @@ export default function Hero() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(157,255,63,0.07),transparent_55%)]"
       />
 
-      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 min-h-svh grid gap-x-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 min-h-svh grid gap-x-8 lg:grid-cols-[1.05fr_1fr]">
         {/* Marv — free-standing, rising from the page's bottom edge like the wireframe */}
         <motion.div
           initial={reduce ? undefined : { opacity: 0, y: 90 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="relative self-end justify-self-center lg:justify-self-start w-[min(78vw,400px)] lg:w-[min(38vw,520px)] max-lg:order-last"
+          className="relative self-end justify-self-center lg:justify-self-start w-[min(88vw,460px)] lg:w-[min(48vw,720px)] lg:-ml-10 max-lg:order-last"
         >
           <div
             aria-hidden
@@ -52,7 +52,7 @@ export default function Hero() {
 
           <motion.h1
             {...rise(0.15)}
-            className="mt-6 font-display font-bold leading-[1.06] text-[clamp(2.5rem,5.3vw,5.1rem)]"
+            className="mt-6 font-display font-bold leading-[1.06] text-[clamp(2.4rem,4.3vw,4.2rem)]"
           >
             Welcome to
             <br />
