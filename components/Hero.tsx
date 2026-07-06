@@ -36,7 +36,7 @@ export default function Hero() {
           initial={reduce ? undefined : { opacity: 0, y: 90 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="max-lg:mx-auto max-lg:w-[min(88vw,460px)] lg:absolute lg:bottom-0 lg:-left-8 lg:h-[min(80svh,740px)] lg:aspect-[482/400] max-lg:order-last"
+          className="max-lg:mx-auto max-lg:w-[min(88vw,460px)] lg:absolute lg:bottom-0 lg:-left-8 lg:w-[min(58%,100svh)] max-lg:order-last"
         >
           <div
             aria-hidden
