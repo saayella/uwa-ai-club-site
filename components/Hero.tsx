@@ -30,13 +30,13 @@ export default function Hero() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(157,255,63,0.07),transparent_55%)]"
       />
 
-      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 min-h-svh grid gap-x-8 lg:grid-cols-[1.05fr_1fr]">
-        {/* Marv — free-standing, rising from the page's bottom edge like the wireframe */}
+      <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-10 min-h-svh flex flex-col lg:block">
+        {/* Marv — spans the hero's height from the bottom edge, like the wireframe */}
         <motion.div
           initial={reduce ? undefined : { opacity: 0, y: 90 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="relative self-end justify-self-center lg:justify-self-start w-[min(88vw,460px)] lg:w-[min(48vw,720px)] lg:-ml-10 max-lg:order-last"
+          className="max-lg:mx-auto max-lg:w-[min(88vw,460px)] lg:absolute lg:bottom-0 lg:-left-8 lg:h-[min(80svh,740px)] lg:aspect-[482/400] max-lg:order-last"
         >
           <div
             aria-hidden
@@ -45,7 +45,7 @@ export default function Hero() {
           <MarvCompanion />
         </motion.div>
 
-        <div className="self-center pt-40 pb-16 lg:py-28">
+        <div className="relative z-10 lg:ml-[46%] lg:min-h-svh flex flex-col justify-center pt-32 pb-6 lg:py-28">
           <motion.p {...rise(0.05)} className="font-mono text-sm text-moss">
             {"// uwa ai club — est. 2025 · perth, wa"}
           </motion.p>
