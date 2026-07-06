@@ -28,7 +28,7 @@ export default function Nav() {
     >
       <nav
         aria-label="Main"
-        className="mx-auto max-w-7xl px-5 sm:px-10 h-16 flex items-center justify-between"
+        className="w-full px-5 sm:px-10 lg:px-[2vw] h-16 flex items-center justify-between"
       >
         <Link href="#top" className="flex items-center gap-3 group">
           <span
