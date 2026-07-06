@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -11,15 +11,35 @@ import {
   useTransform,
 } from "motion/react";
 
-type Mood = "wave" | "idle" | "blink" | "happy" | "curious";
+const FRAMES = [
+  "neutral-1",
+  "neutral-2",
+  "neutral-3",
+  "smile-soft",
+  "happy-closed",
+  "wave-neutral",
+  "wave-eyes",
+  "wave-happy",
+  "smile-wave",
+  "smile-wave-2",
+] as const;
 
-const FRAMES: Record<Mood, string> = {
-  wave: "/marv/expressions/wave-happy.png",
-  idle: "/marv/expressions/neutral-1.png",
-  blink: "/marv/expressions/smile-soft.png",
-  happy: "/marv/expressions/happy-closed.png",
-  curious: "/marv/expressions/neutral-3.png",
-};
+type Frame = (typeof FRAMES)[number];
+
+// frame sequences — arm/eye positions differ per frame, so stepping
+// through them plays like a hand-drawn animation
+const WAVE: Frame[] = [
+  "wave-neutral",
+  "wave-eyes",
+  "wave-happy",
+  "smile-wave",
+  "smile-wave-2",
+  "smile-wave",
+  "wave-happy",
+];
+const BLINK: Frame[] = ["smile-soft", "neutral-1"];
+const GLANCE: Frame[] = ["neutral-2", "neutral-3", "neutral-2", "neutral-1"];
+const DELIGHT: Frame[] = ["happy-closed", "smile-wave-2", "happy-closed"];
 
 const THOUGHTS = [
   "human, or an agent?",
@@ -29,9 +49,39 @@ const THOUGHTS = [
 
 export default function MarvCompanion() {
   const reduce = useReducedMotion();
-  const [mood, setMood] = useState<Mood>("wave");
+  const [frame, setFrame] = useState<Frame>("wave-neutral");
   const [thought, setThought] = useState<string | null>(null);
-  const holdRef = useRef(false);
+  const seqTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const idleTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hovering = useRef(false);
+
+  const stopSeq = useCallback(() => {
+    if (seqTimer.current) clearInterval(seqTimer.current);
+    seqTimer.current = null;
+  }, []);
+
+  const play = useCallback(
+    (frames: Frame[], ms: number, loop = false, onDone?: () => void) => {
+      stopSeq();
+      let i = 0;
+      setFrame(frames[0]);
+      seqTimer.current = setInterval(() => {
+        i += 1;
+        if (i >= frames.length) {
+          if (loop) {
+            i = 0;
+          } else {
+            stopSeq();
+            setFrame("neutral-1");
+            onDone?.();
+            return;
+          }
+        }
+        setFrame(frames[i]);
+      }, ms);
+    },
+    [stopSeq]
+  );
 
   // cursor tilt
   const mx = useMotionValue(0);
@@ -47,20 +97,21 @@ export default function MarvCompanion() {
 
   useEffect(() => {
     if (reduce) {
-      setMood("blink");
+      setFrame("smile-soft");
       return;
     }
 
-    // entrance wave, then settle into the idle/blink loop
-    const settle = setTimeout(() => setMood("idle"), 2200);
+    // entrance: two full wave cycles, then hand over to the idle loop
+    play([...WAVE, ...WAVE], 220);
 
-    const blinker = setInterval(() => {
-      if (holdRef.current) return;
-      setMood("blink");
-      setTimeout(() => {
-        if (!holdRef.current) setMood("idle");
-      }, 480);
-    }, 3800);
+    // idle life: every ~2.6s a micro-animation (blink / glance / wave snippet)
+    idleTimer.current = setInterval(() => {
+      if (hovering.current || seqTimer.current) return;
+      const roll = Math.random();
+      if (roll < 0.5) play(BLINK, 170);
+      else if (roll < 0.8) play(GLANCE, 240);
+      else play(WAVE.slice(0, 5), 230);
+    }, 2600);
 
     // occasional thought bubble
     let i = 0;
@@ -77,41 +128,32 @@ export default function MarvCompanion() {
     window.addEventListener("pointermove", onMove, { passive: true });
 
     return () => {
-      clearTimeout(settle);
-      clearInterval(blinker);
+      stopSeq();
+      if (idleTimer.current) clearInterval(idleTimer.current);
       clearInterval(think);
       window.removeEventListener("pointermove", onMove);
     };
-  }, [reduce, mx, my]);
-
-  // react to what's on screen: happy near CTAs, curious in the vision chapter
-  useEffect(() => {
-    if (reduce) return;
-    const vision = document.getElementById("vision");
-    if (!vision) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        holdRef.current = entry.isIntersecting;
-        setMood(entry.isIntersecting ? "curious" : "idle");
-      },
-      { threshold: 0.15 }
-    );
-    io.observe(vision);
-    return () => io.disconnect();
-  }, [reduce]);
+  }, [reduce, play, stopSeq, mx, my]);
 
   return (
     <motion.div
       style={reduce ? undefined : { rotateX, rotateY, transformPerspective: 700 }}
-      className="relative select-none"
+      className="relative select-none cursor-pointer"
       onPointerEnter={() => {
         if (reduce) return;
-        holdRef.current = true;
-        setMood("happy");
+        hovering.current = true;
+        play(WAVE, 200, true);
       }}
       onPointerLeave={() => {
-        holdRef.current = false;
-        if (!reduce) setMood("idle");
+        if (reduce) return;
+        hovering.current = false;
+        play(BLINK, 170);
+      }}
+      onClick={() => {
+        if (reduce) return;
+        play(DELIGHT, 200);
+        setThought(THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]);
+        setTimeout(() => setThought(null), 3000);
       }}
     >
       <AnimatePresence>
@@ -120,7 +162,7 @@ export default function MarvCompanion() {
             initial={{ opacity: 0, y: 8, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.95 }}
-            className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl rounded-bl-sm border border-hairline bg-surface-2 px-4 py-2 font-mono text-xs text-lime"
+            className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl rounded-bl-sm border border-hairline bg-surface-2 px-4 py-2 font-mono text-xs text-lime z-10"
           >
             {thought}
           </motion.div>
@@ -128,17 +170,17 @@ export default function MarvCompanion() {
       </AnimatePresence>
 
       <div className={reduce ? "" : "animate-[marv-bob_5s_ease-in-out_infinite]"}>
-        {(Object.keys(FRAMES) as Mood[]).map((m) => (
+        {FRAMES.map((f, idx) => (
           <Image
-            key={m}
-            src={FRAMES[m]}
-            alt={m === mood ? "Marv, the UWA AI Club robot-cat mascot" : ""}
+            key={f}
+            src={`/marv/expressions/${f}.png`}
+            alt={f === frame ? "Marv, the UWA AI Club robot-cat mascot" : ""}
             width={340}
             height={340}
-            priority={m === "wave"}
-            className={`drop-shadow-[0_0_36px_rgba(157,255,63,0.35)] transition-opacity duration-150 ${
-              m === mood ? "opacity-100" : "opacity-0"
-            } ${m === "wave" ? "" : "absolute inset-0"}`}
+            priority={idx < 2}
+            className={`drop-shadow-[0_0_36px_rgba(157,255,63,0.35)] ${
+              f === frame ? "opacity-100" : "opacity-0"
+            } ${idx === 0 ? "" : "absolute inset-0"}`}
           />
         ))}
       </div>

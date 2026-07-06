@@ -30,7 +30,25 @@ export default function Hero() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(157,255,63,0.07),transparent_55%)]"
       />
 
-      <div className="relative mx-auto max-w-6xl px-5 sm:px-8 py-20 grid items-center gap-14 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="relative mx-auto max-w-6xl px-5 sm:px-8 py-20 grid items-center gap-14 lg:grid-cols-[0.85fr_1.15fr]">
+        <motion.div
+          initial={reduce ? undefined : { opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
+          className="relative mx-auto w-full max-w-md max-lg:order-last"
+        >
+          <div className="relative rounded-3xl border border-hairline bg-surface/60 backdrop-blur-sm p-10 flex justify-center">
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(157,255,63,0.12),transparent_65%)]"
+            />
+            <MarvCompanion />
+            <p className="absolute bottom-4 right-6 font-mono text-xs text-moss/70">
+              marv.sys — online
+            </p>
+          </div>
+        </motion.div>
+
         <div>
           <motion.p {...rise(0.05)} className="font-mono text-sm text-moss">
             {"// uwa ai club — est. 2025 · perth, wa"}
@@ -83,24 +101,6 @@ export default function Hero() {
             ))}
           </motion.dl>
         </div>
-
-        <motion.div
-          initial={reduce ? undefined : { opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-          className="relative mx-auto w-full max-w-md"
-        >
-          <div className="relative rounded-3xl border border-hairline bg-surface/60 backdrop-blur-sm p-10 flex justify-center">
-            <div
-              aria-hidden
-              className="absolute inset-0 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(157,255,63,0.12),transparent_65%)]"
-            />
-            <MarvCompanion />
-            <p className="absolute bottom-4 right-6 font-mono text-xs text-moss/70">
-              marv.sys — online
-            </p>
-          </div>
-        </motion.div>
       </div>
 
       <div
